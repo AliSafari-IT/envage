@@ -22,7 +22,8 @@
     "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.cjs --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.cjs --coverage",
     "lint": "tsc --noEmit",
-    "prepublishOnly": "pnpm run build"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build && pnpm run test && pnpm run typecheck"
   },
   "keywords": ["age", "encryption", "env", "dotenv", "monorepo", "secrets", "cli"],
   "author": "Ali Safarim <asafarim@gmail.com>",
@@ -42,5 +43,13 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "packageManager": "pnpm@11.2.2"
+  "packageManager": "pnpm@11.2.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AliSafari-IT/envage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AliSafari-IT/envage/issues"
+  },
+  "homepage": "https://AliSafari-IT.github.io/envage"
 }
