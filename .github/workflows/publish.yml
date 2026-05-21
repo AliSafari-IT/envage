@@ -36,7 +36,7 @@ jobs:
         id: version-check
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          PUBLISHED_VERSION=$(npm view @asafarim/navigation version 2>/dev/null || echo "none")
+          PUBLISHED_VERSION=$(npm view @asafarim/envage version 2>/dev/null || echo "none")
           
           echo "Package version: $PACKAGE_VERSION"
           echo "Published version: $PUBLISHED_VERSION"

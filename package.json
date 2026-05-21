@@ -18,9 +18,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.cjs",
-    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.cjs --watch",
-    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.cjs --coverage",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --coverage",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build && pnpm run test && pnpm run typecheck"
