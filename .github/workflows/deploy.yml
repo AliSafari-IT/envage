@@ -63,3 +63,21 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Notify Discord (deployed)
+        if: success()
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"🚀 Demo deployed — envage\",\"description\":\"GitHub Pages updated successfully.\",\"color\":3066993,\"fields\":[{\"name\":\"URL\",\"value\":\"${{ steps.deployment.outputs.page_url }}\",\"inline\":false},{\"name\":\"Commit\",\"value\":\"[${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\",\"inline\":true},{\"name\":\"Actor\",\"value\":\"${{ github.actor }}\",\"inline\":true}]}]}"
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Notify Discord (failed)
+        if: failure()
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Deploy failed — envage\",\"description\":\"GitHub Pages deployment failed. Check the logs.\",\"color\":15158332,\"fields\":[{\"name\":\"Commit\",\"value\":\"[${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\",\"inline\":true},{\"name\":\"Actor\",\"value\":\"${{ github.actor }}\",\"inline\":true}]}]}"
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

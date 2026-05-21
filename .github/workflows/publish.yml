@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   publish:
@@ -35,11 +36,12 @@ jobs:
       - name: Check if version changed
         id: version-check
         run: |
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_VERSION=$(node -e "import('./package.json', {assert:{type:'json'}}).then(m=>process.stdout.write(m.default.version))")
           PUBLISHED_VERSION=$(npm view @asafarim/envage version 2>/dev/null || echo "none")
           
           echo "Package version: $PACKAGE_VERSION"
           echo "Published version: $PUBLISHED_VERSION"
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
           
           if [ "$PACKAGE_VERSION" = "$PUBLISHED_VERSION" ]; then
             echo "Version unchanged, skipping publish"
@@ -49,8 +51,42 @@ jobs:
             echo "should_publish=true" >> $GITHUB_OUTPUT
           fi
 
+      - name: Configure npm auth
+        if: steps.version-check.outputs.should_publish == 'true'
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish to npm
+        id: publish
         if: steps.version-check.outputs.should_publish == 'true'
         run: pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Notify Discord (published)
+        if: steps.publish.outcome == 'success'
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"✅ Published @asafarim/envage@${{ steps.version-check.outputs.package_version }}\",\"description\":\"Successfully published to npm.\",\"color\":3066993,\"fields\":[{\"name\":\"Commit\",\"value\":\"[${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\",\"inline\":true},{\"name\":\"Actor\",\"value\":\"${{ github.actor }}\",\"inline\":true}]}]}"
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Notify Discord (skipped)
+        if: steps.version-check.outputs.should_publish == 'false'
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"⏭️ Publish skipped — @asafarim/envage\",\"description\":\"Version unchanged, nothing published.\",\"color\":10181046,\"fields\":[{\"name\":\"Actor\",\"value\":\"${{ github.actor }}\",\"inline\":true}]}]}"
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Notify Discord (failed)
+        if: failure()
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Publish failed — @asafarim/envage\",\"description\":\"Workflow failed. Check the logs for details.\",\"color\":15158332,\"fields\":[{\"name\":\"Commit\",\"value\":\"[${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\",\"inline\":true},{\"name\":\"Actor\",\"value\":\"${{ github.actor }}\",\"inline\":true}]}]}"
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
