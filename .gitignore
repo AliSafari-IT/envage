@@ -1,0 +1,19 @@
+# Decrypted env files — never commit these
+.env*
+!.env*.age
+!.env.example
+!.env.template
+
+# Age private keys — never commit
+.age/key.txt
+
+# Build output
+dist/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Misc
+*.tgz
+.DS_Store
