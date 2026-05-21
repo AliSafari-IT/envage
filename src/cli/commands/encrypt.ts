@@ -9,6 +9,7 @@ import type { Command } from "commander";
 import path from "path";
 import { encryptEnv } from "../../lib/encrypt.js";
 import { loadConfig } from "../../lib/config.js";
+import { resolveEnvFilename, resolveEnvAgeName } from "../../types.js";
 import { checkStagedEnvFiles } from "../../lib/gitignore.js";
 import { logger } from "../../lib/logger.js";
 import { confirm, promptPassphrase } from "../prompt.js";
@@ -75,8 +76,8 @@ async function encryptOne(
   keyFile: string | undefined,
   passphrase: string | undefined
 ): Promise<void> {
-  const fromFile = path.join(folder, `.env.${env}`);
-  const toFile = path.join(folder, `.env.${env}.age`);
+  const fromFile = path.join(folder, resolveEnvFilename(env));
+  const toFile = path.join(folder, resolveEnvAgeName(env));
 
   logger.encrypting(fromFile, toFile);
 
@@ -104,8 +105,8 @@ async function encryptAll(
   let anyFailed = false;
   for (const app of config.apps) {
     const folder = path.resolve(process.cwd(), app);
-    const fromFile = path.join(folder, `.env.${env}`);
-    const toFile = path.join(folder, `.env.${env}.age`);
+    const fromFile = path.join(folder, resolveEnvFilename(env));
+    const toFile = path.join(folder, resolveEnvAgeName(env));
     logger.encrypting(fromFile, toFile);
     try {
       await encryptEnv({ folder, env, keyFile, passphrase });

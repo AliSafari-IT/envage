@@ -11,6 +11,7 @@ import type { Command } from "commander";
 import path from "path";
 import { decryptEnv } from "../../lib/decrypt.js";
 import { loadConfig } from "../../lib/config.js";
+import { resolveEnvFilename, resolveEnvAgeName } from "../../types.js";
 import { logger } from "../../lib/logger.js";
 import { confirm, promptPassphrase } from "../prompt.js";
 
@@ -76,8 +77,8 @@ async function decryptOne(
   keyFile: string | undefined,
   passphrase: string | undefined
 ): Promise<void> {
-  const fromFile = path.join(folder, `.env.${env}.age`);
-  const toFile = path.join(folder, `.env.${env}`);
+  const fromFile = path.join(folder, resolveEnvAgeName(env));
+  const toFile = path.join(folder, resolveEnvFilename(env));
 
   logger.decrypting(fromFile, toFile);
 
@@ -105,8 +106,8 @@ async function decryptAll(
   let anyFailed = false;
   for (const app of config.apps) {
     const folder = path.resolve(process.cwd(), app);
-    const fromFile = path.join(folder, `.env.${env}.age`);
-    const toFile = path.join(folder, `.env.${env}`);
+    const fromFile = path.join(folder, resolveEnvAgeName(env));
+    const toFile = path.join(folder, resolveEnvFilename(env));
     logger.decrypting(fromFile, toFile);
     try {
       await decryptEnv({ folder, env, keyFile, passphrase });
