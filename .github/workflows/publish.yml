@@ -36,7 +36,7 @@ jobs:
       - name: Check if version changed
         id: version-check
         run: |
-          PACKAGE_VERSION=$(node -e "import('./package.json', {assert:{type:'json'}}).then(m=>process.stdout.write(m.default.version))")
+          PACKAGE_VERSION=$(node -e "const fs=require('fs');process.stdout.write(JSON.parse(fs.readFileSync('./package.json','utf8')).version)")
           PUBLISHED_VERSION=$(npm view @asafarim/envage version 2>/dev/null || echo "none")
           
           echo "Package version: $PACKAGE_VERSION"
