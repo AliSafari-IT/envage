@@ -18,6 +18,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "demo": "pnpm --filter envage-demo run dev",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --coverage",

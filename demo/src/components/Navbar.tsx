@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "./ThemeContext.tsx";
 
+declare const __APP_VERSION__: string;
+
 const NAV_LINKS = [
   { label: "Get Started", href: "#getting-started" },
   { label: "CLI", href: "#cli-demo" },
@@ -40,7 +42,7 @@ export default function Navbar() {
           <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
             env<span style={{ color: "var(--accent-green)" }}>age</span>
           </span>
-          <span className="badge badge-green" style={{ fontSize: "0.65rem" }}>v0.1</span>
+          <span className="badge badge-green" style={{ fontSize: "0.65rem" }}>v{__APP_VERSION__}</span>
         </a>
 
         {/* Desktop nav */}
