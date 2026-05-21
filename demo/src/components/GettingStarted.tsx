@@ -34,7 +34,7 @@ yarn add --dev @asafarim/envage`,
   {
     number: "03",
     title: "Configure your apps",
-    description: "Create envage.config.json at your monorepo root. List your app folders and environment names — that's it.",
+    description: "Create envage.config.json at your monorepo root. List your app folders and environment names. Use \"root\" as an env name to target a plain .env file instead of .env.<env>.",
     color: "var(--accent-purple)",
     code: `// envage.config.json
 {
@@ -45,7 +45,15 @@ yarn add --dev @asafarim/envage`,
   ],
   "envs": ["dev", "staging", "prod"],
   "keyFile": ".age/key.txt"
-}`,
+}
+
+// Use "root" to target a plain .env file:
+{
+  "apps": ["apps/portal"],
+  "envs": ["root", "staging", "prod"],
+  "keyFile": ".age/key.txt"
+}
+// "root" → encrypts .env → .env.age`,
     lang: "json",
   },
   {

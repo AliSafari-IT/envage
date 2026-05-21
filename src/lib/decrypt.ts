@@ -12,6 +12,7 @@ import fs from "fs/promises";
 import path from "path";
 import { readIdentityFromFile } from "./keygen.js";
 import type { EnvOptions } from "../types.js";
+import { resolveEnvFilename, resolveEnvAgeName } from "../types.js";
 
 /**
  * Decrypt a .env.<env>.age file into .env.<env>.
@@ -23,8 +24,8 @@ import type { EnvOptions } from "../types.js";
 export async function decryptEnv(options: EnvOptions): Promise<string> {
   const { folder, env, keyFile, passphrase } = options;
 
-  const cipherPath = path.join(folder, `.env.${env}.age`);
-  const plainPath = path.join(folder, `.env.${env}`);
+  const cipherPath = path.join(folder, resolveEnvAgeName(env));
+  const plainPath = path.join(folder, resolveEnvFilename(env));
 
   // Read the ciphertext
   let ciphertext: Uint8Array;

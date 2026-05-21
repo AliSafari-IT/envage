@@ -38,6 +38,24 @@ export interface EnvOptions {
   passphrase?: string;
 }
 
+/**
+ * Resolve the base filename for a given env name.
+ * - `"root"` → `.env` (plain root env file)
+ * - anything else → `.env.<env>`
+ */
+export function resolveEnvFilename(env: string): string {
+  return env === "root" ? ".env" : `.env.${env}`;
+}
+
+/**
+ * Resolve the encrypted filename for a given env name.
+ * - `"root"` → `.env.age`
+ * - anything else → `.env.<env>.age`
+ */
+export function resolveEnvAgeName(env: string): string {
+  return env === "root" ? ".env.age" : `.env.${env}.age`;
+}
+
 /** Default config values */
 export const DEFAULT_CONFIG: EnvageConfig = {
   apps: [],

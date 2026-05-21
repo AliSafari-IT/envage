@@ -10,6 +10,7 @@ import fs from "fs/promises";
 import path from "path";
 import { readRecipientFromFile } from "./keygen.js";
 import type { EnvOptions } from "../types.js";
+import { resolveEnvFilename, resolveEnvAgeName } from "../types.js";
 
 /**
  * Encrypt a .env.<env> file into .env.<env>.age.
@@ -23,8 +24,8 @@ import type { EnvOptions } from "../types.js";
 export async function encryptEnv(options: EnvOptions): Promise<string> {
   const { folder, env, keyFile, passphrase } = options;
 
-  const plainPath = path.join(folder, `.env.${env}`);
-  const cipherPath = path.join(folder, `.env.${env}.age`);
+  const plainPath = path.join(folder, resolveEnvFilename(env));
+  const cipherPath = path.join(folder, resolveEnvAgeName(env));
 
   // Read the plaintext env file
   let plaintext: Uint8Array;
@@ -74,12 +75,12 @@ export async function encryptEnv(options: EnvOptions): Promise<string> {
  * Build the encrypted file path for a given folder + env.
  */
 export function encryptedPath(folder: string, env: string): string {
-  return path.join(folder, `.env.${env}.age`);
+  return path.join(folder, resolveEnvAgeName(env));
 }
 
 /**
  * Build the plaintext file path for a given folder + env.
  */
 export function plaintextPath(folder: string, env: string): string {
-  return path.join(folder, `.env.${env}`);
+  return path.join(folder, resolveEnvFilename(env));
 }

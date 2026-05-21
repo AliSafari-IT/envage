@@ -113,6 +113,48 @@ describe("encrypt / decrypt roundtrip — passphrase-based", () => {
   });
 });
 
+describe("root env — maps to .env / .env.age", () => {
+  let tmpDir: string;
+  let keyFile: string;
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "envage-test-root-"));
+    const result = await generateKeyPairToFolder(".age", tmpDir);
+    keyFile = result.keyFile;
+    await fs.writeFile(path.join(tmpDir, ".env"), TEST_ENV_CONTENT, "utf-8");
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("creates .env.age (not .env.root.age) when env is 'root'", async () => {
+    await encryptEnv({ folder: tmpDir, env: "root", keyFile });
+    await expect(fs.access(path.join(tmpDir, ".env.age"))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(tmpDir, ".env.root.age"))).rejects.toThrow();
+  });
+
+  it("decrypts .env.age back to .env", async () => {
+    await encryptEnv({ folder: tmpDir, env: "root", keyFile });
+    await fs.rm(path.join(tmpDir, ".env"));
+    await decryptEnv({ folder: tmpDir, env: "root", keyFile });
+    const content = await fs.readFile(path.join(tmpDir, ".env"), "utf-8");
+    expect(content).toBe(TEST_ENV_CONTENT);
+  });
+
+  it("returns .env.age path from encryptEnv", async () => {
+    const result = await encryptEnv({ folder: tmpDir, env: "root", keyFile });
+    expect(result).toBe(path.join(tmpDir, ".env.age"));
+  });
+
+  it("returns .env path from decryptEnv", async () => {
+    await encryptEnv({ folder: tmpDir, env: "root", keyFile });
+    await fs.rm(path.join(tmpDir, ".env"));
+    const result = await decryptEnv({ folder: tmpDir, env: "root", keyFile });
+    expect(result).toBe(path.join(tmpDir, ".env"));
+  });
+});
+
 describe("encrypt error handling", () => {
   let tmpDir: string;
 

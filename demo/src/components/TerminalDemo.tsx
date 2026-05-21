@@ -67,6 +67,25 @@ const DEMOS: Demo[] = [
     ],
   },
   {
+    label: "root env",
+    icon: "🌱",
+    lines: [
+      { type: "cmd",  text: "# Use \"root\" env to encrypt a plain .env file" },
+      { type: "cmd",  text: "npx envage encrypt apps/portal --env root" },
+      { type: "blank" },
+      { type: "out",  text: "🔐 Encrypting apps/portal/.env → .env.age" },
+      { type: "ok",   text: "✔ Done" },
+      { type: "blank" },
+      { type: "cmd",  text: "npx envage decrypt apps/portal --env root" },
+      { type: "blank" },
+      { type: "out",  text: "🔓 Decrypting apps/portal/.env.age → .env" },
+      { type: "ok",   text: "✔ Done" },
+      { type: "blank" },
+      { type: "out",  text: "# envage.config.json:" },
+      { type: "out",  text: "  \"envs\": [\"root\", \"staging\", \"prod\"]" },
+    ],
+  },
+  {
     label: "status",
     icon: "📊",
     lines: [
@@ -240,7 +259,7 @@ export default function CliDemo() {
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
             {[
-              { flag: "--env <name>",   desc: "Environment (dev, prod, …)" },
+              { flag: "--env <name>",   desc: "Environment (dev, prod, …). Use \"root\" for plain .env" },
               { flag: "--key <path>",   desc: "Age key file path" },
               { flag: "--passphrase",   desc: "Use passphrase instead of key" },
               { flag: "--all",          desc: "Run on all apps in config" },

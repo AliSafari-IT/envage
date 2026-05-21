@@ -99,22 +99,25 @@ describe("saveConfig()", () => {
 
 describe("resolveAppPaths()", () => {
   it("resolves relative app paths against cwd", () => {
+    const root = path.join(os.tmpdir(), "envage-test-project");
     const config: EnvageConfig = {
       apps: ["apps/web", "packages/api"],
       envs: ["dev"],
       keyFile: ".age/key.txt",
     };
-    const resolved = resolveAppPaths(config, "/project");
-    expect(resolved).toEqual(["/project/apps/web", "/project/packages/api"]);
+    const resolved = resolveAppPaths(config, root);
+    expect(resolved).toEqual([path.join(root, "apps", "web"), path.join(root, "packages", "api")]);
   });
 
   it("keeps absolute paths as-is", () => {
+    const absApp = path.join(os.tmpdir(), "absolute", "path", "app");
     const config: EnvageConfig = {
-      apps: ["/absolute/path/app"],
+      apps: [absApp],
       envs: ["dev"],
       keyFile: ".age/key.txt",
     };
-    const resolved = resolveAppPaths(config, "/project");
-    expect(resolved).toEqual(["/absolute/path/app"]);
+    const root = path.join(os.tmpdir(), "envage-test-project");
+    const resolved = resolveAppPaths(config, root);
+    expect(resolved).toEqual([absApp]);
   });
 });

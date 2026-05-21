@@ -60,6 +60,41 @@ describe("checkEnvStatus()", () => {
   });
 });
 
+describe("checkEnvStatus() — root env", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "envage-test-root-status-"));
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("resolves paths to .env and .env.age for root env", async () => {
+    const s = await checkEnvStatus(tmpDir, "root");
+    expect(s.decryptedPath).toBe(path.join(tmpDir, ".env"));
+    expect(s.encryptedPath).toBe(path.join(tmpDir, ".env.age"));
+  });
+
+  it("reports decrypted=true when .env exists", async () => {
+    await fs.writeFile(path.join(tmpDir, ".env"), "KEY=value");
+    const s = await checkEnvStatus(tmpDir, "root");
+    expect(s.decrypted).toBe(true);
+    expect(s.encrypted).toBe(false);
+  });
+
+  it("reports encrypted=true when .env.age exists", async () => {
+    const { keyFile } = await generateKeyPairToFolder(".age", tmpDir);
+    await fs.writeFile(path.join(tmpDir, ".env"), "KEY=value");
+    await encryptEnv({ folder: tmpDir, env: "root", keyFile });
+    await fs.rm(path.join(tmpDir, ".env"));
+    const s = await checkEnvStatus(tmpDir, "root");
+    expect(s.encrypted).toBe(true);
+    expect(s.decrypted).toBe(false);
+  });
+});
+
 describe("getEnvStatus()", () => {
   let tmpDir: string;
   let appA: string;

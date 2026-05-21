@@ -4,6 +4,7 @@
 import fs from "fs/promises";
 import path from "path";
 import type { EnvStatus, EnvageConfig } from "../types.js";
+import { resolveEnvFilename, resolveEnvAgeName } from "../types.js";
 
 /**
  * Check a single folder + env combination.
@@ -12,8 +13,8 @@ export async function checkEnvStatus(
   folder: string,
   env: string
 ): Promise<EnvStatus> {
-  const decryptedPath = path.join(folder, `.env.${env}`);
-  const encryptedPath = path.join(folder, `.env.${env}.age`);
+  const decryptedPath = path.join(folder, resolveEnvFilename(env));
+  const encryptedPath = path.join(folder, resolveEnvAgeName(env));
 
   const [decrypted, encrypted] = await Promise.all([
     fileExists(decryptedPath),

@@ -42,6 +42,13 @@ const TREE: FileNode[] = [
           },
         ]
       },
+      {
+        name: "apps/portal/", type: "dir", children: [
+          { name: ".env", type: "file", note: "root env — gitignored", color: "var(--accent-yellow)" },
+          { name: ".env.age", type: "file", note: "root env encrypted ✅", color: "var(--accent-green)" },
+          { name: ".env.staging.age", type: "file", color: "var(--accent-green)" },
+        ]
+      },
       { name: "envage.config.json", type: "file", note: "config — commit this ✅", color: "var(--accent-blue)" },
       { name: ".gitignore", type: "file", note: "auto-updated by envage", color: "var(--text-muted)" },
     ]
