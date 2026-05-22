@@ -61,11 +61,15 @@ yarn add --dev @asafarim/envage`,
     title: "Encrypt & commit",
     description: "Create your .env files normally, then encrypt them. Only the .age files go into Git — the plaintext files are gitignored.",
     color: "var(--accent-orange)",
-    code: `# Encrypt a single app/env
+    code: `# Encrypt a named env (.env.dev → .env.dev.age)
 npx envage encrypt apps/web --env dev
 
 # Encrypt ALL apps at once
 npx envage encrypt --all --env prod
+
+# Encrypt root env (.env → .env.age)
+npx envage encrypt apps/portal --env root
+npx envage encrypt --all --env root
 
 # Check what's encrypted / decrypted
 npx envage status`,

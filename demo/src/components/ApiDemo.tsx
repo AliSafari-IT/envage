@@ -8,10 +8,17 @@ const SNIPPETS: Snippet[] = [
     icon: "🔐",
     code: `import { encryptEnv } from "@asafarim/envage";
 
-// Key-based encryption (recommended)
+// Named env: .env.dev → .env.dev.age
 await encryptEnv({
   folder: "apps/web",
   env: "dev",
+  keyFile: ".age/key.txt",
+});
+
+// Root env: .env → .env.age
+await encryptEnv({
+  folder: "apps/portal",
+  env: "root",
   keyFile: ".age/key.txt",
 });
 
@@ -27,14 +34,21 @@ await encryptEnv({
     icon: "🔓",
     code: `import { decryptEnv } from "@asafarim/envage";
 
-// Decrypt using private key
+// Named env: .env.prod.age → .env.prod
 await decryptEnv({
   folder: "apps/web",
   env: "prod",
   keyFile: ".age/key.txt",
 });
 
-// Decrypt using passphrase
+// Root env: .env.age → .env
+await decryptEnv({
+  folder: "apps/portal",
+  env: "root",
+  keyFile: ".age/key.txt",
+});
+
+// Passphrase-based decryption
 await decryptEnv({
   folder: "apps/web",
   env: "dev",

@@ -187,8 +187,11 @@ export default function MonorepoStructure() {
                 # Auto-added to .gitignore by envage:
               </div>
               <div><span style={{ color: "var(--accent-orange)" }}>.env*</span></div>
+              <div><span style={{ color: "var(--accent-green)" }}>!.env.age</span>
+                <span style={{ color: "var(--terminal-comment)" }}> # root env encrypted</span>
+              </div>
               <div><span style={{ color: "var(--accent-green)" }}>!.env*.age</span>
-                <span style={{ color: "var(--terminal-comment)" }}> # keep encrypted</span>
+                <span style={{ color: "var(--terminal-comment)" }}> # named env encrypted</span>
               </div>
               <div><span style={{ color: "var(--accent-green)" }}>!.env.example</span></div>
               <div><span style={{ color: "var(--accent-orange)" }}>.age/key.txt</span>

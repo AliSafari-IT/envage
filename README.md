@@ -12,7 +12,7 @@ Go, Rust, and DevSecOps toolchains worldwide.
 ## Features
 
 - 🔐 **age encryption** — uses `age-encryption` (pure TypeScript, no native deps)
-- 🌍 **Multi-environment** — `dev`, `staging`, `prod` and any custom names
+- 🌍 **Multi-environment** — `dev`, `staging`, `prod`, any custom names, or `root` for a plain `.env` file
 - 📁 **Monorepo-aware** — encrypt/decrypt all apps at once with `--all`
 - 🔑 **Key or passphrase** — supports X25519 keypairs and passphrase-based encryption
 - 🛡 **Git-safe** — auto-updates `.gitignore`; warns if you stage a decrypted file
@@ -51,10 +51,13 @@ This creates:
 ### 2. Create your config
 
 ```bash
-# envage.config.json (at the monorepo root)
+# envage.config.json (add it to the monorepo root)
+# use relative paths from the monorepo root
+# use 'root' for the .env files regardless of environment, 'dev' for development environment .env.dev, 'staging' for staging environment .env.staging, 'prod' for production environment .env.prod
+# use '.' for the current directory (monorepo root): "apps": [".", "apps/web"],
 {
-  "apps": ["apps/web", "apps/admin", "packages/api"],
-  "envs": ["dev", "staging", "prod"],
+  "apps": [".", "apps/web", "apps/admin", "packages/api"],
+  "envs": ["root", "dev", "staging", "prod"],
   "keyFile": ".age/key.txt"
 }
 ```
@@ -67,6 +70,9 @@ npx envage encrypt apps/web --env dev
 
 # Encrypt all apps at once
 npx envage encrypt --all --env prod
+
+# Encrypt all apps for all environments
+npx envage encrypt --all root
 ```
 
 ### 4. Check status
@@ -122,7 +128,7 @@ envage init-key [--output <folder>]
 
 ### `envage encrypt`
 
-Encrypt `.env.<env>` → `.env.<env>.age`.
+Encrypt `.env.<env>` → `.env.<env>.age` (or `.env` → `.env.age` when `--env root`).
 
 ```bash
 envage encrypt [path] [options]
@@ -141,13 +147,17 @@ envage encrypt apps/web --env dev
 envage encrypt apps/web --env prod --key .age/key.txt
 envage encrypt --all --env staging
 envage encrypt apps/web --env dev --passphrase "my secret"
+
+# Root env — targets the plain .env file (no suffix)
+envage encrypt apps/portal --env root
+envage encrypt --all --env root
 ```
 
 ---
 
 ### `envage decrypt`
 
-Decrypt `.env.<env>.age` → `.env.<env>`.
+Decrypt `.env.<env>.age` → `.env.<env>` (or `.env.age` → `.env` when `--env root`).
 
 ```bash
 envage decrypt [path] [options]
@@ -167,6 +177,10 @@ envage decrypt [path] [options]
 ```bash
 envage decrypt apps/web --env dev
 envage decrypt --all --env prod
+
+# Root env — targets .env.age → .env
+envage decrypt apps/portal --env root
+envage decrypt --all --env root
 ```
 
 ---
@@ -202,6 +216,28 @@ Place this file at the root of your monorepo:
 }
 ```
 
+### Root env — plain `.env` files
+
+Use `"root"` as an env name to target the bare `.env` file (no suffix) in each app folder.
+This is useful for projects that already use a single `.env` and don't want to rename it.
+
+```json
+{
+  "apps": [".", "apps/web", "apps/admin", "packages/api"],
+  "envs": ["root", "dev", "staging", "prod"],
+  "keyFile": ".age/key.txt"
+}
+```
+
+| env name | plaintext file | encrypted file |
+|----------|---------------|----------------|
+| `root` | `.env` | `.env.age` |
+| `dev` | `.env.dev` | `.env.dev.age` |
+| `staging` | `.env.staging` | `.env.staging.age` |
+| `prod` | `.env.prod` | `.env.prod.age` |
+
+### Config fields
+
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `apps` | `string[]` | `[]` | App folder paths (relative to cwd) |
@@ -230,24 +266,38 @@ const { identity, recipient } = await generateKeyPair();
 // Write keypair to disk
 await generateKeyPairToFolder(".age");
 
-// Encrypt a file (key-based)
+// Encrypt a named env file (.env.dev → .env.dev.age)
 await encryptEnv({
   folder: "apps/web",
   env: "dev",
   keyFile: ".age/key.txt",
 });
 
-// Encrypt a file (passphrase-based)
+// Encrypt the root env (.env → .env.age)
+await encryptEnv({
+  folder: "apps/portal",
+  env: "root",
+  keyFile: ".age/key.txt",
+});
+
+// Passphrase-based encryption
 await encryptEnv({
   folder: "apps/web",
   env: "dev",
   passphrase: "my-secret-passphrase",
 });
 
-// Decrypt a file
+// Decrypt a named env file (.env.dev.age → .env.dev)
 await decryptEnv({
   folder: "apps/web",
   env: "dev",
+  keyFile: ".age/key.txt",
+});
+
+// Decrypt the root env (.env.age → .env)
+await decryptEnv({
+  folder: "apps/portal",
+  env: "root",
   keyFile: ".age/key.txt",
 });
 
@@ -312,23 +362,27 @@ exit 0
 ```
 monorepo/
 ├── .age/
-│   ├── key.txt          ← private key (gitignored)
-│   └── key.pub          ← public key  (commit this)
+│   ├── key.txt              ← private key (gitignored)
+│   └── key.pub              ← public key  (commit this)
 ├── apps/
 │   ├── web/
-│   │   ├── .env.dev     ← decrypted (gitignored)
-│   │   ├── .env.dev.age ← encrypted (committed ✅)
-│   │   ├── .env.prod    ← decrypted (gitignored)
-│   │   └── .env.prod.age← encrypted (committed ✅)
-│   └── admin/
-│       ├── .env.dev.age
-│       └── .env.prod.age
+│   │   ├── .env.dev         ← decrypted (gitignored)
+│   │   ├── .env.dev.age     ← encrypted (committed ✅)
+│   │   ├── .env.prod        ← decrypted (gitignored)
+│   │   └── .env.prod.age    ← encrypted (committed ✅)
+│   ├── admin/
+│   │   ├── .env.dev.age
+│   │   └── .env.prod.age
+│   └── portal/              ← app using root env (plain .env)
+│       ├── .env             ← decrypted (gitignored)
+│       ├── .env.age         ← encrypted (committed ✅)
+│       └── .env.staging.age ← encrypted (committed ✅)
 ├── packages/
 │   └── api/
 │       ├── .env.dev.age
 │       └── .env.prod.age
-├── envage.config.json   ← committed ✅
-└── .gitignore           ← auto-updated by envage
+├── envage.config.json       ← committed ✅
+└── .gitignore               ← auto-updated by envage
 ```
 
 ---
