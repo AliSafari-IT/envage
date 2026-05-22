@@ -1,0 +1,114 @@
+name: "Issue Development Tracker"
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    types: [opened, closed]
+
+jobs:
+  track-development:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract Issue Numbers from Commit Messages
+        id: extract-issues
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          COMMIT_SHA: ${{ github.event.head_commit.id }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        run: |
+          # Get commit message (for push) or PR body (for PR)
+          if [ "${{ github.event_name }}" = "push" ]; then
+            MESSAGE="$COMMIT_MESSAGE"
+            SHA="$COMMIT_SHA"
+          else
+            MESSAGE="$PR_BODY"
+            SHA="$PR_SHA"
+          fi
+          
+          # Extract issue numbers from commit message / PR body (fixes #123, closes #123, #123)
+          ISSUES=$(echo "$MESSAGE" | grep -oE '#[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//')
+
+          # Fallback: extract leading issue number from branch name (e.g. "1-feat-..." → #1)
+          if [ -z "$ISSUES" ]; then
+            BRANCH_ISSUE=$(echo "$BRANCH_NAME" | grep -oE '^[0-9]+' | head -n1)
+            if [ -n "$BRANCH_ISSUE" ]; then
+              ISSUES="#$BRANCH_ISSUE"
+              echo "No issue in commit message — inferred #$BRANCH_ISSUE from branch name '$BRANCH_NAME'"
+            fi
+          fi
+
+          echo "issues=$ISSUES" >> $GITHUB_OUTPUT
+          {
+            echo "message<<EOF"
+            echo "$MESSAGE"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          echo "Found issues: $ISSUES"
+
+      - name: Update Issue Development Status
+        if: steps.extract-issues.outputs.issues != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUES: ${{ steps.extract-issues.outputs.issues }}
+          EVENT_NAME: ${{ github.event_name }}
+          MESSAGE: ${{ steps.extract-issues.outputs.message }}
+          SHA: ${{ steps.extract-issues.outputs.sha }}
+          COMMIT_URL: ${{ github.event.head_commit.url }}
+          AUTHOR: ${{ github.event.head_commit.author.name }}
+        run: |
+          IFS=',' read -ra ISSUE_ARRAY <<< "$ISSUES"
+          for issue in "${ISSUE_ARRAY[@]}"; do
+            if [ -n "$issue" ]; then
+              # Remove # prefix
+              ISSUE_NUM="${issue//#/}"
+              
+              # Check if issue exists first
+              if ! gh issue view "$ISSUE_NUM" --json title --jq '.title' > /dev/null 2>&1; then
+                echo "Issue #$ISSUE_NUM not found, skipping"
+                continue
+              fi
+              
+              # Get current issue body
+              BODY=$(gh issue view "$ISSUE_NUM" --json body --jq '.body' || echo "")
+              
+              # Extract commit subject (first line, truncated to 100 chars)
+              COMMIT_SUBJECT=$(printf '%s' "$MESSAGE" | head -n1 | cut -c1-100)
+              
+              # Create new entry for this commit
+              NEW_ENTRY="- [ ] [${SHA:0:7}]($COMMIT_URL) by $AUTHOR - $(date '+%Y-%m-%d %H:%M') - $COMMIT_SUBJECT"
+              
+              # Check if development section exists
+              if [[ "$BODY" == *"### Commits Linked to This Issue"* ]]; then
+                # Update existing section - add entry after the header line
+                if [ "$EVENT_NAME" = "push" ]; then
+                  BODY=$(echo "$BODY" | sed "s|### Commits Linked to This Issue|### Commits Linked to This Issue\n$NEW_ENTRY|")
+                fi
+              else
+                # Add development section if it doesn't exist
+                DEV_SECTION="\n\n## Development Progress\n### Commits Linked to This Issue\n"
+                if [ "$EVENT_NAME" = "push" ]; then
+                  DEV_SECTION+="$NEW_ENTRY\n"
+                fi
+                DEV_SECTION+="### Pull Requests\n\n### Implementation Checklist\n- [ ] Development started\n"
+                BODY="$BODY$DEV_SECTION"
+              fi
+              
+              # Update issue
+              gh issue edit "$ISSUE_NUM" --body "$BODY"
+              echo "Updated issue #$ISSUE_NUM"
+            fi
+          done

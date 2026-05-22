@@ -34,7 +34,7 @@ export default function Footer() {
             </h4>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { label: "GitHub Repository", href: "https://github.com/asafarim/envage" },
+                { label: "GitHub Repository", href: "https://github.com/AliSafari-IT/envage" },
                 { label: "npm Package", href: "https://www.npmjs.com/package/@asafarim/envage" },
                 { label: "age Encryption Spec", href: "https://age-encryption.org" },
                 { label: "age-encryption (npm)", href: "https://www.npmjs.com/package/age-encryption" },

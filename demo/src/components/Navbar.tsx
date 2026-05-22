@@ -8,7 +8,8 @@ const NAV_LINKS = [
   { label: "CLI", href: "#cli-demo" },
   { label: "API", href: "#api-demo" },
   { label: "Security", href: "#security" },
-  { label: "GitHub", href: "https://github.com/asafarim/envage", external: true },
+  { label: "GitHub", href: "https://github.com/AliSafari-IT/envage", external: true },
+  { label: "npm", href: "https://www.npmjs.com/package/@asafarim/envage", external: true },
 ];
 
 export default function Navbar() {

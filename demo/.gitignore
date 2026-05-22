@@ -1,2 +1,15 @@
 node_modules/
 dist/
+
+# --- envage managed ---
+# Decrypted env files — never commit
+.env*
+!.env*.age
+!.env*.example
+!.env.example
+!.env.template
+!.env.root
+
+# Age private key
+.age/key.txt
+# --- end envage ---
