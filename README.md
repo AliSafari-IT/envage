@@ -1,4 +1,4 @@
-# @asafarim/envage
+# @asafarim/envage: Commit encrypted .env files with confidence
 
 > **Secure, age-based encryption for `.env` files across monorepo environments.**
 
