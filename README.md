@@ -74,7 +74,7 @@ npx envage encrypt apps/web --env dev
 npx envage encrypt --all --env prod
 
 # Encrypt all apps for all environments
-npx envage encrypt --all root
+npx envage encrypt --all --env root
 ```
 
 ### 4. Check status
