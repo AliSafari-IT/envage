@@ -238,11 +238,33 @@ This is useful for projects that already use a single `.env` and don't want to r
 | `staging` | `.env.staging` | `.env.staging.age` |
 | `prod` | `.env.prod` | `.env.prod.age` |
 
+### Glob patterns in `apps`
+
+App entries may use glob patterns, which are expanded against the filesystem
+to the matching **directories** that exist. This is handy for monorepos where
+you don't want to list every package by hand.
+
+```json
+{
+  "apps": [".", "apps/*", "packages/*"],
+  "envs": ["root", "production"],
+  "keyFile": ".age/key.txt",
+  "keyPubFile": ".age/key.pub"
+}
+```
+
+- `*` matches a single path segment (e.g. `apps/*` → `apps/web`, `apps/admin`).
+- `**` matches nested directories at any depth.
+- Only existing directories are matched; files are ignored.
+- Non-glob entries (like `.` or `apps/web`) are kept as-is, even if the folder
+  does not exist yet.
+- Results are de-duplicated, so overlapping patterns are safe.
+
 ### Config fields
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `apps` | `string[]` | `[]` | App folder paths (relative to cwd) |
+| `apps` | `string[]` | `[]` | App folder paths (relative to cwd). Supports glob patterns (see below) |
 | `envs` | `string[]` | `["dev","staging","prod"]` | Environment names to manage |
 | `keyFile` | `string` | `.age/key.txt` | Path to private key |
 | `keyPubFile` | `string` | `.age/key.pub` | Path to public key |

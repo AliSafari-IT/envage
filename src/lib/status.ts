@@ -5,13 +5,14 @@ import fs from "fs/promises";
 import path from "path";
 import type { EnvStatus, EnvageConfig } from "../types.js";
 import { resolveEnvFilename, resolveEnvAgeName } from "../types.js";
+import { resolveApps } from "./config.js";
 
 /**
  * Check a single folder + env combination.
  */
 export async function checkEnvStatus(
   folder: string,
-  env: string
+  env: string,
 ): Promise<EnvStatus> {
   const decryptedPath = path.join(folder, resolveEnvFilename(env));
   const encryptedPath = path.join(folder, resolveEnvAgeName(env));
@@ -29,12 +30,12 @@ export async function checkEnvStatus(
  */
 export async function getEnvStatus(
   config: EnvageConfig,
-  cwd = process.cwd()
+  cwd = process.cwd(),
 ): Promise<EnvStatus[]> {
   const results: EnvStatus[] = [];
 
-  for (const app of config.apps) {
-    const absFolder = path.isAbsolute(app) ? app : path.resolve(cwd, app);
+  const folders = await resolveApps(config, cwd);
+  for (const absFolder of folders) {
     for (const env of config.envs) {
       results.push(await checkEnvStatus(absFolder, env));
     }
@@ -48,15 +49,13 @@ export async function getEnvStatus(
  */
 export async function getFolderStatus(
   folder: string,
-  config: EnvageConfig
+  config: EnvageConfig,
 ): Promise<EnvStatus[]> {
   const absFolder = path.isAbsolute(folder)
     ? folder
     : path.resolve(process.cwd(), folder);
 
-  return Promise.all(
-    config.envs.map((env) => checkEnvStatus(absFolder, env))
-  );
+  return Promise.all(config.envs.map((env) => checkEnvStatus(absFolder, env)));
 }
 
 /** Helper: check if a file exists */

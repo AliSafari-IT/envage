@@ -16,6 +16,17 @@ export {
   readRecipientFromFile,
 } from "./lib/keygen.js";
 export { getEnvStatus, getFolderStatus, checkEnvStatus } from "./lib/status.js";
-export { loadConfig, saveConfig, resolveAppPaths, CONFIG_FILENAME } from "./lib/config.js";
-export { ensureGitignore, checkStagedEnvFiles, getGitignoreRules } from "./lib/gitignore.js";
+export {
+  loadConfig,
+  saveConfig,
+  resolveAppPaths,
+  resolveApps,
+  isGlobPattern,
+  CONFIG_FILENAME,
+} from "./lib/config.js";
+export {
+  ensureGitignore,
+  checkStagedEnvFiles,
+  getGitignoreRules,
+} from "./lib/gitignore.js";
 export type { EnvStatus, EnvageConfig, EnvOptions } from "./types.js";

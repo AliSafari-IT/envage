@@ -8,7 +8,7 @@
 import type { Command } from "commander";
 import path from "path";
 import { encryptEnv } from "../../lib/encrypt.js";
-import { loadConfig } from "../../lib/config.js";
+import { loadConfig, resolveApps } from "../../lib/config.js";
 import { resolveEnvFilename, resolveEnvAgeName } from "../../types.js";
 import { checkStagedEnvFiles } from "../../lib/gitignore.js";
 import { logger } from "../../lib/logger.js";
@@ -26,8 +26,14 @@ export function registerEncrypt(program: Command): void {
     .command("encrypt [path]")
     .description("Encrypt .env.<env> → .env.<env>.age")
     .option("-e, --env <env>", "environment name (e.g. dev, prod)", "dev")
-    .option("-k, --key <keyFile>", "path to age key file (.age/key.txt or .age/key.pub)")
-    .option("-p, --passphrase <pass>", "passphrase for encryption (not recommended via CLI arg — use without value to be prompted)")
+    .option(
+      "-k, --key <keyFile>",
+      "path to age key file (.age/key.txt or .age/key.pub)",
+    )
+    .option(
+      "-p, --passphrase <pass>",
+      "passphrase for encryption (not recommended via CLI arg — use without value to be prompted)",
+    )
     .option("--all", "encrypt all apps defined in envage.config.json")
     .action(async (folderArg: string | undefined, opts: EncryptOptions) => {
       // Warn about staged decrypted files first
@@ -64,7 +70,9 @@ export function registerEncrypt(program: Command): void {
       if (opts.all) {
         await encryptAll(envName, keyFile, passphrase);
       } else {
-        const folder = folderArg ? path.resolve(process.cwd(), folderArg) : process.cwd();
+        const folder = folderArg
+          ? path.resolve(process.cwd(), folderArg)
+          : process.cwd();
         await encryptOne(folder, envName, keyFile, passphrase);
       }
     });
@@ -74,7 +82,7 @@ async function encryptOne(
   folder: string,
   env: string,
   keyFile: string | undefined,
-  passphrase: string | undefined
+  passphrase: string | undefined,
 ): Promise<void> {
   const fromFile = path.join(folder, resolveEnvFilename(env));
   const toFile = path.join(folder, resolveEnvAgeName(env));
@@ -94,17 +102,17 @@ async function encryptOne(
 async function encryptAll(
   env: string,
   keyFile: string | undefined,
-  passphrase: string | undefined
+  passphrase: string | undefined,
 ): Promise<void> {
   const config = await loadConfig();
-  if (config.apps.length === 0) {
+  const folders = await resolveApps(config);
+  if (folders.length === 0) {
     logger.warn("No apps defined in envage.config.json. Nothing to encrypt.");
     return;
   }
 
   let anyFailed = false;
-  for (const app of config.apps) {
-    const folder = path.resolve(process.cwd(), app);
+  for (const folder of folders) {
     const fromFile = path.join(folder, resolveEnvFilename(env));
     const toFile = path.join(folder, resolveEnvAgeName(env));
     logger.encrypting(fromFile, toFile);
@@ -121,6 +129,10 @@ async function encryptAll(
   if (anyFailed) process.exit(1);
 }
 
-export async function runEncryptAll(env: string, keyFile?: string, passphrase?: string): Promise<void> {
+export async function runEncryptAll(
+  env: string,
+  keyFile?: string,
+  passphrase?: string,
+): Promise<void> {
   await encryptAll(env, keyFile, passphrase);
 }

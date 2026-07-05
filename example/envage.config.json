@@ -1,10 +1,11 @@
 {
   "apps": [
+    ".",
     "apps/web",
     "apps/admin",
     "packages/api"
   ],
-  "envs": ["dev", "staging", "prod"],
+  "envs": ["dev", "staging", "prod", "root"],
   "keyFile": ".age/key.txt",
   "keyPubFile": ".age/key.pub"
 }

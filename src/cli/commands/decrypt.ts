@@ -10,7 +10,7 @@
 import type { Command } from "commander";
 import path from "path";
 import { decryptEnv } from "../../lib/decrypt.js";
-import { loadConfig } from "../../lib/config.js";
+import { loadConfig, resolveApps } from "../../lib/config.js";
 import { resolveEnvFilename, resolveEnvAgeName } from "../../types.js";
 import { logger } from "../../lib/logger.js";
 import { confirm, promptPassphrase } from "../prompt.js";
@@ -29,7 +29,10 @@ export function registerDecrypt(program: Command): void {
     .command("decrypt [path]")
     .description("Decrypt .env.<env>.age → .env.<env>")
     .option("-e, --env <env>", "environment name (e.g. dev, prod)", "dev")
-    .option("-k, --key <keyFile>", "path to age private key file (.age/key.txt)")
+    .option(
+      "-k, --key <keyFile>",
+      "path to age private key file (.age/key.txt)",
+    )
     .option("-p, --passphrase <pass>", "passphrase for decryption")
     .option("--all", "decrypt all apps defined in envage.config.json")
     .action(async (folderArg: string | undefined, opts: DecryptOptions) => {
@@ -57,7 +60,9 @@ export function registerDecrypt(program: Command): void {
           keyFile = path.resolve(process.cwd(), defaultKey);
           logger.detail(`Using key file: ${keyFile}`);
         } catch {
-          logger.info("No key file found. Enter the passphrase for decryption:");
+          logger.info(
+            "No key file found. Enter the passphrase for decryption:",
+          );
           passphrase = await promptPassphrase();
         }
       }
@@ -65,7 +70,9 @@ export function registerDecrypt(program: Command): void {
       if (opts.all) {
         await decryptAll(envName, keyFile, passphrase);
       } else {
-        const folder = folderArg ? path.resolve(process.cwd(), folderArg) : process.cwd();
+        const folder = folderArg
+          ? path.resolve(process.cwd(), folderArg)
+          : process.cwd();
         await decryptOne(folder, envName, keyFile, passphrase);
       }
     });
@@ -75,7 +82,7 @@ async function decryptOne(
   folder: string,
   env: string,
   keyFile: string | undefined,
-  passphrase: string | undefined
+  passphrase: string | undefined,
 ): Promise<void> {
   const fromFile = path.join(folder, resolveEnvAgeName(env));
   const toFile = path.join(folder, resolveEnvFilename(env));
@@ -95,17 +102,17 @@ async function decryptOne(
 async function decryptAll(
   env: string,
   keyFile: string | undefined,
-  passphrase: string | undefined
+  passphrase: string | undefined,
 ): Promise<void> {
   const config = await loadConfig();
-  if (config.apps.length === 0) {
+  const folders = await resolveApps(config);
+  if (folders.length === 0) {
     logger.warn("No apps defined in envage.config.json. Nothing to decrypt.");
     return;
   }
 
   let anyFailed = false;
-  for (const app of config.apps) {
-    const folder = path.resolve(process.cwd(), app);
+  for (const folder of folders) {
     const fromFile = path.join(folder, resolveEnvAgeName(env));
     const toFile = path.join(folder, resolveEnvFilename(env));
     logger.decrypting(fromFile, toFile);
