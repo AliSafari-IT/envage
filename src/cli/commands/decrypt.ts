@@ -8,6 +8,7 @@
  * Production decryption always prompts for manual confirmation.
  */
 import type { Command } from "commander";
+import fs from "fs/promises";
 import path from "path";
 import { decryptEnv } from "../../lib/decrypt.js";
 import { loadConfig, resolveApps } from "../../lib/config.js";
@@ -115,6 +116,12 @@ async function decryptAll(
   for (const folder of folders) {
     const fromFile = path.join(folder, resolveEnvAgeName(env));
     const toFile = path.join(folder, resolveEnvFilename(env));
+    if (!(await fileExists(fromFile))) {
+      logger.skip(
+        `Skipping ${fromFile} — no ${resolveEnvAgeName(env)} to decrypt`,
+      );
+      continue;
+    }
     logger.decrypting(fromFile, toFile);
     try {
       await decryptEnv({ folder, env, keyFile, passphrase });
@@ -127,4 +134,14 @@ async function decryptAll(
   }
 
   if (anyFailed) process.exit(1);
+}
+
+/** Whether a file exists and is readable. */
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }

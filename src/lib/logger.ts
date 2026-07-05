@@ -20,6 +20,11 @@ export const logger = {
     console.warn(chalk.yellow("⚠") + " " + chalk.yellow(msg));
   },
 
+  /** Skipped step — informational, not a failure */
+  skip(msg: string): void {
+    console.log(chalk.gray("⊘") + " " + chalk.gray(msg));
+  },
+
   /** Error message */
   error(msg: string): void {
     console.error(chalk.red("✖") + " " + chalk.red(msg));
@@ -47,7 +52,7 @@ export const logger = {
         " Encrypting " +
         chalk.cyan(from) +
         " → " +
-        chalk.cyan(to)
+        chalk.cyan(to),
     );
   },
 
@@ -58,7 +63,7 @@ export const logger = {
         " Decrypting " +
         chalk.cyan(from) +
         " → " +
-        chalk.cyan(to)
+        chalk.cyan(to),
     );
   },
 };

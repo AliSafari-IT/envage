@@ -6,6 +6,7 @@
  *   envage encrypt --all [--env dev] [--key .age/key.txt]
  */
 import type { Command } from "commander";
+import fs from "fs/promises";
 import path from "path";
 import { encryptEnv } from "../../lib/encrypt.js";
 import { loadConfig, resolveApps } from "../../lib/config.js";
@@ -115,6 +116,12 @@ async function encryptAll(
   for (const folder of folders) {
     const fromFile = path.join(folder, resolveEnvFilename(env));
     const toFile = path.join(folder, resolveEnvAgeName(env));
+    if (!(await fileExists(fromFile))) {
+      logger.skip(
+        `Skipping ${fromFile} — no ${resolveEnvFilename(env)} to encrypt`,
+      );
+      continue;
+    }
     logger.encrypting(fromFile, toFile);
     try {
       await encryptEnv({ folder, env, keyFile, passphrase });
@@ -135,4 +142,14 @@ export async function runEncryptAll(
   passphrase?: string,
 ): Promise<void> {
   await encryptAll(env, keyFile, passphrase);
+}
+
+/** Whether a file exists and is readable. */
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
