@@ -281,6 +281,7 @@ import {
   generateKeyPairToFolder,
   getEnvStatus,
   loadConfig,
+  resolveApps,
   ensureGitignore,
 } from "@asafarim/envage";
 
@@ -325,8 +326,12 @@ await decryptEnv({
   keyFile: ".age/key.txt",
 });
 
-// Check status
+// Expand app globs ("apps/*") to actual folder paths
 const config = await loadConfig();
+const folders = await resolveApps(config);
+// → ["/repo/apps/web", "/repo/apps/admin", ...]
+
+// Check status (globs in config are expanded automatically)
 const statuses = await getEnvStatus(config);
 statuses.forEach((s) => {
   console.log(`${s.folder} [${s.env}]: encrypted=${s.encrypted} decrypted=${s.decrypted}`);

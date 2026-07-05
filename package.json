@@ -1,6 +1,6 @@
 {
   "name": "@asafarim/envage",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Secure, age-based encryption/decryption for .env files across multiple environments and monorepo app folders",
   "type": "module",
   "main": "./dist/index.js",
