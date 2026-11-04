@@ -30,6 +30,29 @@ await encryptEnv({
 });`,
   },
   {
+    label: "Recipients",
+    icon: "👥",
+    code: `import { readFile } from "node:fs/promises";
+import { encryptEnv, loadConfig, updateRecipient } from "@asafarim/envage";
+
+// Use a teammate's PUBLIC key file, never their private identity.
+const teammatePublic = (await readFile("teammate.pub", "utf8")).trim();
+
+// Re-encrypt existing configured files using an authorized identity.
+await updateRecipient("add", teammatePublic, { keyFile: ".age/key.txt" });
+
+// The Node API takes recipients explicitly; the CLI loads them for you.
+const config = await loadConfig();
+await encryptEnv({
+  folder: "apps/web",
+  env: "dev",
+  recipients: config.recipients,
+});
+
+// Removal affects new ciphertext, not old history or known secrets.
+await updateRecipient("remove", teammatePublic, { keyFile: ".age/key.txt" });`,
+  },
+  {
     label: "Decrypt",
     icon: "🔓",
     code: `import { decryptEnv } from "@asafarim/envage";
@@ -65,7 +88,7 @@ await decryptEnv({
 
 // Generate in memory (returns strings)
 const { identity, recipient } = await generateKeyPair();
-console.log(identity);   // AGE-SECRET-KEY-1...
+// Keep identity private: never log it or commit it.
 console.log(recipient);  // age1...
 
 // Generate and write to disk
@@ -122,27 +145,14 @@ if (offenders.length > 0) {
 ];
 
 function highlight(code: string) {
-  return code
-    .replace(
-      /(\/\/.+)/g,
-      `<span style="color:var(--terminal-comment)">$1</span>`,
-    )
-    .replace(
-      /("([^"]*)")/g,
-      `<span style="color:var(--terminal-string)">$1</span>`,
-    )
-    .replace(
-      /\b(import|from|await|const|async|if|process)\b/g,
-      `<span style="color:var(--terminal-keyword)">$1</span>`,
-    )
-    .replace(
-      /\b(true|false|null|undefined)\b/g,
-      `<span style="color:var(--accent-orange)">$1</span>`,
-    )
-    .replace(
-      /\b(\d+)\b/g,
-      `<span style="color:var(--accent-purple)">$1</span>`,
-    );
+  return code.split(/(\/\/[^\n]*|"(?:\\.|[^"\\])*"|\b(?:import|from|await|const|async|if|process|true|false|null|undefined)\b|\b\d+\b)/g).map((token, i) => {
+    const color = token.startsWith("//") ? "var(--terminal-comment)"
+      : token.startsWith('"') ? "var(--terminal-string)"
+      : /^(import|from|await|const|async|if|process)$/.test(token) ? "var(--terminal-keyword)"
+      : /^(true|false|null|undefined|[0-9]+)$/.test(token) ? "var(--accent-orange)"
+      : "var(--terminal-text)";
+    return <span key={i} style={{ color }}>{token}</span>;
+  });
 }
 
 export default function ApiDemo() {
@@ -165,9 +175,8 @@ export default function ApiDemo() {
         <p className="section-label">Programmatic API</p>
         <h2 className="section-title">Use it as a library</h2>
         <p className="section-subtitle" style={{ marginBottom: 48 }}>
-          Every CLI command has an equivalent TypeScript function. Import what
-          you need and integrate it into your build scripts, CI pipelines, or
-          custom tooling.
+          Use the Node.js API in build scripts and custom tooling. Envage has no React
+          dependency and works with React 18 and 19 projects; filesystem encryption runs outside browser components.
         </p>
 
         <div
@@ -296,10 +305,7 @@ export default function ApiDemo() {
                   lineHeight: 1.75,
                   overflowX: "auto",
                 }}
-                dangerouslySetInnerHTML={{
-                  __html: highlight(SNIPPETS[active].code),
-                }}
-              />
+              ><code>{highlight(SNIPPETS[active].code)}</code></pre>
             </div>
           </div>
         </div>

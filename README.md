@@ -30,7 +30,9 @@ Go, Rust, and DevSecOps toolchains worldwide.
 Requires Node.js 20 or newer. Envage has no React dependency or peer-version
 restriction and works in React 18 and React 19 project tooling. Its CLI and
 filesystem API run in Node.js, outside browser-rendered components. The demo
-uses React 18.
+uses React 18, with a separate React 19 build in CI. The demo defaults to dark
+mode, remembers your theme choice, and includes CLI/API team-recipient examples
+and a Roadmap linked to the current milestone.
 
 ## Installation
 
@@ -81,7 +83,7 @@ npx envage encrypt apps/web --env dev
 # Encrypt all apps at once
 npx envage encrypt --all --env prod
 
-# Encrypt all apps for all environments
+# Encrypt plain .env files across all apps (one environment per invocation)
 npx envage encrypt --all --env root
 ```
 
@@ -111,7 +113,8 @@ packages/api
 ### 5. Decrypt on a new machine
 
 ```bash
-# Copy your private key to .age/key.txt (never commit it!)
+# Restore your own private identity from secure backup, or have an authorized
+# teammate add your new public recipient (see Team encryption below).
 npx envage decrypt apps/web --env dev
 
 # Decrypt all at once
@@ -195,6 +198,12 @@ envage decrypt --all --env root
 
 ---
 
+### `envage recipient add/list/remove`
+
+Manage team membership and re-encrypt every existing configured ciphertext.
+`add` and `remove` take one complete public recipient plus optional `--key <identity-file>`.
+See [Team encryption](#team-encryption-v050) for configuration, recovery, and revocation limits.
+
 ### `envage status`
 
 Show encryption status for all configured apps and environments.
@@ -276,6 +285,7 @@ you don't want to list every package by hand.
 | `envs` | `string[]` | `["dev","staging","prod"]` | Environment names to manage |
 | `keyFile` | `string` | `.age/key.txt` | Path to private key |
 | `keyPubFile` | `string` | `.age/key.pub` | Path to public key |
+| `recipients` | `string[]` | omitted | Public age recipients; omission keeps legacy single-key mode |
 
 ---
 
@@ -291,6 +301,7 @@ import {
   loadConfig,
   resolveApps,
   ensureGitignore,
+  updateRecipient,
 } from "@asafarim/envage";
 
 // Generate a keypair

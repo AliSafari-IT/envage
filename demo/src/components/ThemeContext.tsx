@@ -14,16 +14,17 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      return (localStorage.getItem("envage-theme") as Theme) ??
-        (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    }
+    try {
+      const saved = localStorage.getItem("envage-theme");
+      if (saved === "dark" || saved === "light") return saved;
+    } catch { /* Theme switching still works if browser storage is blocked. */ }
     return "dark";
   });
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("envage-theme", theme);
+    try { localStorage.setItem("envage-theme", theme); }
+    catch { /* Keep the current in-memory preference. */ }
   }, [theme]);
 
   const toggle = () => setTheme((t) => (t === "dark" ? "light" : "dark"));

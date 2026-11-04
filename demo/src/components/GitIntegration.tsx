@@ -116,7 +116,7 @@ export default function GitIntegration() {
         </div>
 
         {/* Code snippets side by side */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
+        <div id="git-snippets" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
           <CodeSnippet
             title=".gitignore (auto-added)"
             lang="gitignore"
@@ -128,6 +128,9 @@ export default function GitIntegration() {
 !.env.template
 # Age private key
 .age/key.txt
+# Recipient update recovery
+.envage-recovery-*/
+envage.config.json.lock
 # --- end envage ---`}
           />
           <CodeSnippet
@@ -161,10 +164,10 @@ exit 0`}
           <span style={{ fontSize: "1.5rem" }}>🚀</span>
           <div>
             <strong style={{ color: "var(--accent-blue)", display: "block", marginBottom: 8 }}>
-              CI/CD — decrypt in your pipeline
+              CI/CD — planned secure automation
             </strong>
             <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 12 }}>
-              In CI, inject the private key via a secret environment variable, write it to a temp file, then decrypt:
+              Production CLI decryption still requires interactive confirmation. Explicit noninteractive authorization and exec are planned in issue #6. Use independent deployment identities and a secret store; never share personal private keys.
             </p>
             <pre style={{
               background: "var(--terminal-bg)",
@@ -177,14 +180,11 @@ exit 0`}
               margin: 0,
               overflowX: "auto",
             }}>
-{`# GitHub Actions example
-- name: Decrypt env files
-  run: |
-    mkdir -p .age
-    echo "$AGE_PRIVATE_KEY" > .age/key.txt
-    npx envage decrypt --all --env prod
-  env:
-    AGE_PRIVATE_KEY: \${{ secrets.AGE_PRIVATE_KEY }}`}
+{`# Available today: interactive production decryption
+npx envage decrypt --all --env prod
+
+# Follow the secure automation proposal:
+# https://github.com/AliSafari-IT/envage/issues/6`}
             </pre>
           </div>
         </div>

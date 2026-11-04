@@ -2,6 +2,7 @@ import { useState } from "react";
 
 const FEATURES = [
   { icon: "🔐", text: "age encryption" },
+  { icon: "👥", text: "Independent team identities" },
   { icon: "🌍", text: "Multi-environment" },
   { icon: "📁", text: "Monorepo-native" },
   { icon: "🛡️", text: "Git-safe" },
