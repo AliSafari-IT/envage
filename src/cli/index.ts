@@ -7,6 +7,7 @@
  *   init-key  — Generate an age keypair
  *   status    — Show encryption status
  */
+import { registerRecipient } from "./commands/recipient.js";
 import { Command } from "commander";
 import { createRequire } from "module";
 import { registerEncrypt } from "./commands/encrypt.js";
@@ -38,6 +39,7 @@ Examples:
   $ envage status apps/web`
     );
 
+  registerRecipient(program);
   registerEncrypt(program);
   registerDecrypt(program);
   registerInitKey(program);

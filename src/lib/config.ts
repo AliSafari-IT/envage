@@ -18,12 +18,14 @@ export async function loadConfig(cwd = process.cwd()): Promise<EnvageConfig> {
     const raw = await fs.readFile(configPath, "utf-8");
     const parsed = JSON.parse(raw) as Partial<EnvageConfig>;
     return {
+      ...(parsed.recipients !== undefined ? { recipients: parsed.recipients } : {}),
       apps: parsed.apps ?? DEFAULT_CONFIG.apps,
       envs: parsed.envs ?? DEFAULT_CONFIG.envs,
       keyFile: parsed.keyFile ?? DEFAULT_CONFIG.keyFile,
       keyPubFile: parsed.keyPubFile ?? DEFAULT_CONFIG.keyPubFile,
     };
-  } catch {
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw new Error("Cannot load envage.config.json; check JSON and permissions.");
     return { ...DEFAULT_CONFIG };
   }
 }

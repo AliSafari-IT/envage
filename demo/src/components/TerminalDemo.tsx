@@ -218,7 +218,7 @@ export default function CliDemo() {
         <p className="section-label">CLI</p>
         <h2 className="section-title">See every command in action</h2>
         <p className="section-subtitle" style={{ marginBottom: 48 }}>
-          Four commands cover the complete workflow — from key generation to
+          Core commands cover the everyday workflow — from key generation to
           day-to-day encrypt/decrypt operations.
         </p>
 

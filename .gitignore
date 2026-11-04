@@ -17,3 +17,7 @@ node_modules/
 # Misc
 *.tgz
 .DS_Store
+
+# Interrupted recipient-update recovery artifacts
+.envage-recovery-*/
+envage.config.json.lock

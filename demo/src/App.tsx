@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import Roadmap from "./components/Roadmap.tsx";
 import { ThemeProvider } from "./components/ThemeContext.tsx";
 import Navbar from "./components/Navbar.tsx";
 import Hero from "./components/Hero.tsx";
@@ -10,11 +12,25 @@ import GitIntegration from "./components/GitIntegration.tsx";
 import Footer from "./components/Footer.tsx";
 
 export default function App() {
+  const [roadmap, setRoadmap] = useState(window.location.hash === "#roadmap");
+  useEffect(() => {
+    const update = () => {
+      const active = window.location.hash === "#roadmap";
+      setRoadmap(active);
+      if (!active) requestAnimationFrame(() => document.getElementById(window.location.hash.slice(1))?.scrollIntoView());
+    };
+    window.addEventListener("hashchange", update);
+    return () => window.removeEventListener("hashchange", update);
+  }, []);
+  useEffect(() => {
+    if (roadmap) window.scrollTo({ top: 0, behavior: "instant" });
+  }, [roadmap]);
   return (
     <ThemeProvider>
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
         <Navbar />
         <main style={{ flex: 1 }}>
+          {roadmap ? <Roadmap /> : <>
           <Hero />
           <div className="divider" />
           <GettingStarted />
@@ -28,6 +44,7 @@ export default function App() {
           <SecuritySection />
           <div className="divider" />
           <GitIntegration />
+          </>}
         </main>
         <Footer />
       </div>

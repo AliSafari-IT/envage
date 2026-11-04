@@ -313,7 +313,7 @@ export default function ApiDemo() {
             {[
               {
                 name: "EnvOptions",
-                desc: "Options for encryptEnv / decryptEnv (folder, env, keyFile, passphrase)",
+                desc: "Options for encryptEnv / decryptEnv (folder, env, keyFile, passphrase, recipients)",
               },
               {
                 name: "EnvStatus",
@@ -321,7 +321,7 @@ export default function ApiDemo() {
               },
               {
                 name: "EnvageConfig",
-                desc: "Shape of envage.config.json: apps, envs, keyFile, keyPubFile",
+                desc: "Shape of envage.config.json: apps, envs, keyFile, keyPubFile, recipients",
               },
             ].map((t) => (
               <div

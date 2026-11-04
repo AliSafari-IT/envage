@@ -47,7 +47,7 @@ const WORKFLOW_STEPS = [
   {
     icon: "📤",
     title: "Commit the .age file",
-    desc: "Only the encrypted file goes into Git. Your teammates can decrypt it with their copy of the key.",
+    desc: "Only the encrypted file goes into Git. Your teammates can decrypt it with their own authorized identity.",
     code: "git add apps/web/.env.dev.age && git commit",
     color: "var(--accent-blue)",
   },
