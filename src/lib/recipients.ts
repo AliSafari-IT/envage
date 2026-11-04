@@ -36,8 +36,8 @@ export async function updateRecipient(
       throw new Error("Unfinished recipient update: restore originals from the recovery manifest before continuing.");
     }
     const before = await fs.readFile(configPath);
-    const raw = JSON.parse(before.toString("utf8"));
     const config = await loadConfig(cwd);
+    const raw = JSON.parse(before.toString("utf8"));
     const identity = await readIdentityFromFile(path.resolve(cwd, options.keyFile ?? config.keyFile));
     const current = config.recipients === undefined
       ? [await age.identityToRecipient(identity)] : validateRecipients(config.recipients);
