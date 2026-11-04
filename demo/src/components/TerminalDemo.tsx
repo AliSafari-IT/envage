@@ -30,6 +30,26 @@ const DEMOS: Demo[] = [
     ],
   },
   {
+    label: "recipient",
+    icon: "👥",
+    lines: [
+      { type: "out", text: "# Each teammate generates their own identity; share only key.pub." },
+      { type: "out", text: "# Replace age1... below with the complete teammate public key." },
+      { type: "cmd", text: "npx envage recipient add age1... --key .age/key.txt" },
+      { type: "ok", text: "Recipients updated; re-encrypted 3 file(s)." },
+      { type: "cmd", text: "npx envage recipient list" },
+      { type: "out", text: "age1... (your public key)" },
+      { type: "out", text: "age1... (teammate public key)" },
+      { type: "out", text: "# Encrypt using every configured public recipient; no private key needed." },
+      { type: "cmd", text: "npx envage encrypt --all --env dev" },
+      { type: "ok", text: "✔ Done" },
+      { type: "cmd", text: "npx envage recipient remove age1... --key .age/key.txt" },
+      { type: "ok", text: "Recipients updated; re-encrypted 3 file(s)." },
+      { type: "warn", text: "Old Git history and previously learned secrets remain accessible." },
+      { type: "warn", text: "Commit updated config and ciphertext together; keep recovery backups private." },
+    ],
+  },
+  {
     label: "encrypt",
     icon: "🔐",
     lines: [
@@ -218,8 +238,8 @@ export default function CliDemo() {
         <p className="section-label">CLI</p>
         <h2 className="section-title">See every command in action</h2>
         <p className="section-subtitle" style={{ marginBottom: 48 }}>
-          Four commands cover the complete workflow — from key generation to
-          day-to-day encrypt/decrypt operations.
+          Core commands cover the everyday workflow — from key generation to
+          team onboarding, offboarding, and day-to-day encrypt/decrypt operations. Examples below are illustrative.
         </p>
 
         {/* Tab bar */}

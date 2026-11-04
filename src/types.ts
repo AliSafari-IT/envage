@@ -18,6 +18,8 @@ export interface EnvStatus {
 export interface EnvageConfig {
   /** App/package folder paths relative to cwd (e.g. ["apps/web", "packages/api"]) */
   apps: string[];
+  /** Authorized public age recipients. Omit for legacy single-key encryption. */
+  recipients?: string[];
   /** Environment names to manage (e.g. ["dev", "staging", "prod"]) */
   envs: string[];
   /** Path to the age private key file (default: ".age/key.txt") */
@@ -36,6 +38,8 @@ export interface EnvOptions {
   keyFile?: string;
   /** Passphrase (for passphrase-based encryption) */
   passphrase?: string;
+  /** Explicit public recipients; mutually exclusive with passphrase. */
+  recipients?: string[];
 }
 
 /**

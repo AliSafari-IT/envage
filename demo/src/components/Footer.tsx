@@ -1,3 +1,5 @@
+declare const __APP_VERSION__: string;
+
 export default function Footer() {
   const year = new Date().getFullYear();
 
@@ -8,7 +10,7 @@ export default function Footer() {
       padding: "48px 0 32px",
     }}>
       <div className="container">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 40, marginBottom: 40 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 40, marginBottom: 40 }}>
           {/* Brand */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -22,7 +24,7 @@ export default function Footer() {
             </p>
             <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
               <span className="badge badge-green">MIT</span>
-              <span className="badge badge-blue">v0.1.0</span>
+              <span className="badge badge-blue">v{__APP_VERSION__}</span>
               <span className="badge badge-purple">TypeScript</span>
             </div>
           </div>

@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { label: "Get Started", href: "#getting-started" },
   { label: "CLI", href: "#cli-demo" },
   { label: "API", href: "#api-demo" },
+  { label: "Roadmap", href: "#roadmap" },
   { label: "Security", href: "#security" },
   { label: "GitHub", href: "https://github.com/AliSafari-IT/envage", external: true },
   { label: "npm", href: "https://www.npmjs.com/package/@asafarim/envage", external: true },
@@ -110,6 +111,8 @@ export default function Navbar() {
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="mobile-menu-btn"
+          aria-label="Toggle navigation"
+          aria-expanded={menuOpen}
           style={{
             display: "none",
             background: "none",
@@ -152,7 +155,7 @@ export default function Navbar() {
       )}
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 1000px) {
           .desktop-nav { display: none !important; }
           .mobile-menu-btn { display: flex !important; }
         }

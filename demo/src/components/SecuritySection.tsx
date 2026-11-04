@@ -186,9 +186,10 @@ export default function SecuritySection() {
             </strong>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", lineHeight: 1.6 }}>
               envage protects secrets <em>at rest</em> in your repository. The private key
-              (<code>.age/key.txt</code>) must be distributed to developers out-of-band — via a
-              password manager, secret vault (1Password, HashiCorp Vault, AWS SSM, etc.), or
-              secure file share. Never commit or email the private key.
+              (<code>.age/key.txt</code>) belongs to its owner. Each teammate generates
+              an independent identity; add only their public key with <code>envage recipient add</code>.
+              Never commit or share private identities. Removing a recipient does not revoke
+              access to old ciphertext or secrets already learned.
             </p>
           </div>
         </div>

@@ -5,6 +5,8 @@
  *  - Public key encryption (via keyFile / pubFile)
  *  - Passphrase-based encryption
  */
+import { atomicWrite } from "./transaction.js";
+import { validateRecipients } from "./recipients.js";
 import * as age from "age-encryption";
 import fs from "fs/promises";
 import path from "path";
@@ -42,7 +44,10 @@ export async function encryptEnv(options: EnvOptions): Promise<string> {
 
   const encrypter = new age.Encrypter();
 
-  if (passphrase) {
+  if (options.recipients !== undefined) {
+    if (passphrase) throw new Error("Recipients and passphrase cannot be combined.");
+    for (const recipient of validateRecipients(options.recipients)) encrypter.addRecipient(recipient);
+  } else if (passphrase) {
     encrypter.setPassphrase(passphrase);
   } else if (keyFile) {
     // Determine the pub file: prefer key.pub alongside the key file
@@ -66,7 +71,7 @@ export async function encryptEnv(options: EnvOptions): Promise<string> {
 
   const ciphertext = await encrypter.encrypt(plaintext);
 
-  await fs.writeFile(cipherPath, ciphertext);
+  await atomicWrite(cipherPath, ciphertext);
 
   return cipherPath;
 }

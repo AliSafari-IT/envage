@@ -1,4 +1,2 @@
 allowBuilds:
   esbuild: false
-minimumReleaseAgeExclude:
-  - '@asafarim/envage@0.3.0'

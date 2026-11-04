@@ -30,3 +30,5 @@ export {
   getGitignoreRules,
 } from "./lib/gitignore.js";
 export type { EnvStatus, EnvageConfig, EnvOptions } from "./types.js";
+
+export { updateRecipient, validateRecipients } from "./lib/recipients.js";

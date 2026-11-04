@@ -46,11 +46,14 @@ export function registerEncrypt(program: Command): void {
         process.exit(1);
       }
 
+      const config = await loadConfig();
+      const recipients = opts.passphrase ? undefined : config.recipients;
+
       // Resolve encryption credential
       let passphrase = opts.passphrase;
       let keyFile = opts.key;
 
-      if (!passphrase && !keyFile) {
+      if (!passphrase && !keyFile && recipients === undefined) {
         // Auto-detect default key file
         const config = await loadConfig();
         const defaultKey = config.keyFile;
@@ -69,12 +72,12 @@ export function registerEncrypt(program: Command): void {
       const envName = opts.env ?? "dev";
 
       if (opts.all) {
-        await encryptAll(envName, keyFile, passphrase);
+        await encryptAll(envName, keyFile, passphrase, recipients);
       } else {
         const folder = folderArg
           ? path.resolve(process.cwd(), folderArg)
           : process.cwd();
-        await encryptOne(folder, envName, keyFile, passphrase);
+        await encryptOne(folder, envName, keyFile, passphrase, recipients);
       }
     });
 }
@@ -84,6 +87,7 @@ async function encryptOne(
   env: string,
   keyFile: string | undefined,
   passphrase: string | undefined,
+  recipients?: string[],
 ): Promise<void> {
   const fromFile = path.join(folder, resolveEnvFilename(env));
   const toFile = path.join(folder, resolveEnvAgeName(env));
@@ -91,7 +95,7 @@ async function encryptOne(
   logger.encrypting(fromFile, toFile);
 
   try {
-    await encryptEnv({ folder, env, keyFile, passphrase });
+    await encryptEnv({ folder, env, keyFile, passphrase, recipients });
     logger.success("Done");
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -104,6 +108,7 @@ async function encryptAll(
   env: string,
   keyFile: string | undefined,
   passphrase: string | undefined,
+  recipients?: string[],
 ): Promise<void> {
   const config = await loadConfig();
   const folders = await resolveApps(config);
@@ -124,7 +129,7 @@ async function encryptAll(
     }
     logger.encrypting(fromFile, toFile);
     try {
-      await encryptEnv({ folder, env, keyFile, passphrase });
+      await encryptEnv({ folder, env, keyFile, passphrase, recipients });
       logger.success("Done");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);

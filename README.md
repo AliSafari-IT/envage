@@ -16,6 +16,7 @@ Go, Rust, and DevSecOps toolchains worldwide.
 - 🔐 **age encryption** — uses `age-encryption` (pure TypeScript, no native deps)
 - 🌍 **Multi-environment** — `dev`, `staging`, `prod`, any custom names, or `root` for a plain `.env` file
 - 📁 **Monorepo-aware** — encrypt/decrypt all apps at once with `--all`
+- 👥 **Team recipients** — independent identities decrypt shared ciphertext; no private-key sharing
 - 🔑 **Key or passphrase** — supports X25519 keypairs and passphrase-based encryption
 - 🛡 **Git-safe** — auto-updates `.gitignore`; warns if you stage a decrypted file
 - ✅ **Production guard** — interactive confirmation required to decrypt `prod` files
@@ -23,6 +24,15 @@ Go, Rust, and DevSecOps toolchains worldwide.
 - 📦 **pnpm / monorepo friendly** — works seamlessly with pnpm workspaces
 
 ---
+
+## Compatibility
+
+Requires Node.js 20 or newer. Envage has no React dependency or peer-version
+restriction and works in React 18 and React 19 project tooling. Its CLI and
+filesystem API run in Node.js, outside browser-rendered components. The demo
+uses React 18, with a separate React 19 build in CI. The demo defaults to dark
+mode, remembers your theme choice, and includes CLI/API team-recipient examples
+and a Roadmap linked to the current milestone.
 
 ## Installation
 
@@ -73,7 +83,7 @@ npx envage encrypt apps/web --env dev
 # Encrypt all apps at once
 npx envage encrypt --all --env prod
 
-# Encrypt all apps for all environments
+# Encrypt plain .env files across all apps (one environment per invocation)
 npx envage encrypt --all --env root
 ```
 
@@ -103,7 +113,8 @@ packages/api
 ### 5. Decrypt on a new machine
 
 ```bash
-# Copy your private key to .age/key.txt (never commit it!)
+# Restore your own private identity from secure backup, or have an authorized
+# teammate add your new public recipient (see Team encryption below).
 npx envage decrypt apps/web --env dev
 
 # Decrypt all at once
@@ -187,6 +198,12 @@ envage decrypt --all --env root
 
 ---
 
+### `envage recipient add/list/remove`
+
+Manage team membership and re-encrypt every existing configured ciphertext.
+`add` and `remove` take one complete public recipient plus optional `--key <identity-file>`.
+See [Team encryption](#team-encryption-v050) for configuration, recovery, and revocation limits.
+
 ### `envage status`
 
 Show encryption status for all configured apps and environments.
@@ -268,6 +285,7 @@ you don't want to list every package by hand.
 | `envs` | `string[]` | `["dev","staging","prod"]` | Environment names to manage |
 | `keyFile` | `string` | `.age/key.txt` | Path to private key |
 | `keyPubFile` | `string` | `.age/key.pub` | Path to public key |
+| `recipients` | `string[]` | omitted | Public age recipients; omission keeps legacy single-key mode |
 
 ---
 
@@ -283,6 +301,7 @@ import {
   loadConfig,
   resolveApps,
   ensureGitignore,
+  updateRecipient,
 } from "@asafarim/envage";
 
 // Generate a keypair
@@ -340,6 +359,68 @@ statuses.forEach((s) => {
 // Ensure .gitignore rules are present
 await ensureGitignore();
 ```
+
+---
+
+## Team encryption (v0.5.0)
+
+Each teammate runs `envage init-key` locally and shares **only** their public
+`key.pub`. Keep private identities on their owner's machine or in a secure backup.
+An existing authorized member can onboard another public recipient:
+
+```bash
+envage recipient add age1... --key .age/key.txt
+envage recipient list
+envage recipient remove age1... --key .age/key.txt
+```
+
+Replace `age1...` with a complete age X25519 public key. Commands run from the
+project root and require an existing `envage.config.json` with nonempty `apps`
+and `envs`. Add/remove re-encrypt **all existing ciphertext** in those configured
+slots, including glob-expanded apps and `root` environments. Unconfigured files
+are outside their scope. Missing ciphertext is skipped. Passphrase-encrypted or
+undecryptable files abort the entire operation before replacements begin.
+
+Public recipients are saved in the versioned config:
+
+```json
+{
+  "apps": [".", "apps/*"],
+  "envs": ["root", "dev", "prod"],
+  "keyFile": ".age/key.txt",
+  "recipients": ["age1...", "age1..."]
+}
+```
+
+Commit the updated config and ciphertext together. Ordinary CLI encryption uses
+configured recipients, even when `--key` is supplied, and needs no private key.
+An explicit `--passphrase` selects passphrase encryption instead. Configs without
+`recipients` keep the legacy single-key behavior. The first `recipient add`
+retains the supplied identity's public key as the initial authorized member.
+Duplicate, invalid, unknown, or last-recipient removal requests fail safely.
+
+The programmatic API accepts explicit public recipients:
+
+```ts
+await encryptEnv({ folder: "apps/web", env: "dev", recipients: [alicePublic, bobPublic] });
+await updateRecipient("add", bobPublic, { cwd: projectRoot, keyFile: ".age/key.txt" });
+```
+
+`encryptEnv` does not load config automatically; pass `config.recipients` yourself.
+Recipient changes decrypt only in memory, never to plaintext files. Replacements
+use same-directory temporary files and atomic renames. On a write failure,
+completed replacements are rolled back. Multi-file replacement is **not** one
+filesystem transaction: do not run concurrent encryption/config writers. A lock
+prevents concurrent recipient updates. Originals and a manifest are saved in a
+private `.envage-recovery-*` directory until success or successful rollback.
+After a process interruption or failed rollback, stop all writers, restore **every**
+original listed in that directory's `manifest.json`, verify decryption, then
+remove the recovery directory and `envage.config.json.lock`. Never commit these
+recovery artifacts. Keep a secure backup or clean Git checkpoint before changes.
+
+Removing a recipient blocks access to the newly encrypted files only. Old Git
+history, ciphertext copies, and previously learned secrets remain accessible.
+Rotate underlying API credentials separately if access must be revoked.
 
 ---
 
@@ -418,8 +499,8 @@ monorepo/
 
 ## Security Notes
 
-- **Never commit `.age/key.txt`** — it is your private key. Share it with
-  teammates via a secrets manager (1Password, Vault, AWS SSM, etc.)
+- **Never commit or share `.age/key.txt`** — it is your private identity.
+  Give each teammate their own identity and add only their public recipient.
 - **Decrypted values are never logged** — not in verbose mode, not in errors
 - **Production decryption is gated** — always requires explicit `y` confirmation
 - **Encrypted files are binary** — they cannot be accidentally read as text

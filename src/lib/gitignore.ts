@@ -19,6 +19,9 @@ const ENVAGE_RULES = `${ENVAGE_BLOCK_START}
 !.env.template
 # Age private key
 .age/key.txt
+# Recipient update recovery (contains old ciphertext)
+.envage-recovery-*/
+envage.config.json.lock
 ${ENVAGE_BLOCK_END}`;
 
 /**

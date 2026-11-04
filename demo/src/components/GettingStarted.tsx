@@ -21,7 +21,7 @@ yarn add --dev @asafarim/envage`,
     number: "02",
     title: "Generate your keypair",
     description:
-      "Run init-key once in your repo root. It creates a private key (.gitignored automatically) and a public key you can share with teammates.",
+      "Each teammate runs init-key locally. Keep private identities private and share only public keys. Add team recipients after configuring your apps.",
     color: "var(--accent-blue)",
     code: `npx envage init-key
 
@@ -37,7 +37,7 @@ yarn add --dev @asafarim/envage`,
     number: "03",
     title: "Configure your apps",
     description:
-      'Create envage.config.json at your monorepo root. List your app folders and environment names. Entries support glob patterns (apps/*, packages/**) that expand to matching folders. Use "root" as an env name to target a plain .env file instead of .env.<env>.',
+      'Create envage.config.json at your monorepo root. Add teammates with envage recipient add to populate the public recipients list. List your app folders and environment names. Entries support glob patterns (apps/*, packages/**) that expand to matching folders. Use "root" as an env name to target a plain .env file instead of .env.<env>.',
     color: "var(--accent-purple)",
     code: `// envage.config.json
 {
@@ -84,7 +84,13 @@ npx envage encrypt apps/portal --env root
 npx envage encrypt --all --env root
 
 # Check what's encrypted / decrypted
-npx envage status`,
+npx envage status
+
+# Team onboarding (replace age1... with a complete public key)
+npx envage recipient add age1... --key .age/key.txt
+npx envage recipient list
+# Commit envage.config.json and updated .age files together.
+# Teammates decrypt with their OWN authorized private identity.`,
     lang: "bash",
   },
 ];
