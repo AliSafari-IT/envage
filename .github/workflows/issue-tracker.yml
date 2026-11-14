@@ -76,9 +76,16 @@ jobs:
               # Remove # prefix
               ISSUE_NUM="${issue//#/}"
               
-              # Check if issue exists first
-              if ! gh issue view "$ISSUE_NUM" --json title --jq '.title' > /dev/null 2>&1; then
+              # Skip numbers that do not exist or that are pull requests.
+              # A squash-merge subject ends in "(#<PR number>)"; PRs answer
+              # "gh issue view" too, but this job may not edit them.
+              URL=$(gh issue view "$ISSUE_NUM" --json url --jq '.url' 2>/dev/null || true)
+              if [ -z "$URL" ]; then
                 echo "Issue #$ISSUE_NUM not found, skipping"
+                continue
+              fi
+              if [[ "$URL" == */pull/* ]]; then
+                echo "#$ISSUE_NUM is a pull request, skipping"
                 continue
               fi
               
@@ -99,11 +106,12 @@ jobs:
                 fi
               else
                 # Add development section if it doesn't exist
-                DEV_SECTION="\n\n## Development Progress\n### Commits Linked to This Issue\n"
+                # $'...' so that \n becomes a real line break in the issue body
+                DEV_SECTION=$'\n\n## Development Progress\n### Commits Linked to This Issue\n'
                 if [ "$EVENT_NAME" = "push" ]; then
-                  DEV_SECTION+="$NEW_ENTRY\n"
+                  DEV_SECTION+="$NEW_ENTRY"$'\n'
                 fi
-                DEV_SECTION+="### Pull Requests\n\n### Implementation Checklist\n- [ ] Development started\n"
+                DEV_SECTION+=$'### Pull Requests\n\n### Implementation Checklist\n- [ ] Development started\n'
                 BODY="$BODY$DEV_SECTION"
               fi
               
