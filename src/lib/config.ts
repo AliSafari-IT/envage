@@ -46,6 +46,44 @@ export async function saveConfig(
 }
 
 /**
+ * Starter config written by `envage init-key`: the repository root only, with
+ * the `production` and `root` environments. Users add their app folders.
+ */
+export const STARTER_CONFIG: EnvageConfig = {
+  apps: ["."],
+  envs: ["production", "root"],
+  keyFile: ".age/key.txt",
+  keyPubFile: ".age/key.pub",
+};
+
+/**
+ * Create envage.config.json in `cwd` unless one already exists.
+ * An existing file is never read, changed or overwritten.
+ *
+ * @returns the config path and whether this call created the file.
+ */
+export async function initConfig(
+  cwd = process.cwd(),
+  overrides: Partial<EnvageConfig> = {},
+): Promise<{ configPath: string; created: boolean }> {
+  const configPath = path.join(cwd, CONFIG_FILENAME);
+  const config: EnvageConfig = { ...STARTER_CONFIG, ...overrides };
+  try {
+    // "wx" fails if the file exists, so a concurrent or earlier config is kept.
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2) + "\n", {
+      encoding: "utf-8",
+      flag: "wx",
+    });
+    return { configPath, created: true };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+      return { configPath, created: false };
+    }
+    throw error;
+  }
+}
+
+/**
  * Resolve all app folder paths as absolute paths.
  *
  * Note: this is a purely lexical resolution and does NOT expand glob

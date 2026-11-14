@@ -60,19 +60,24 @@ This creates:
 .age/key.pub   ← public key  (safe to share with teammates)
 ```
 
-### 2. Create your config
+### 2. Add your app folders to the config
 
-```bash
-# envage.config.json (add it to the monorepo root)
-# use relative paths from the monorepo root
-# use 'root' for the .env files regardless of environment, 'dev' for development environment .env.dev, 'staging' for staging environment .env.staging, 'prod' for production environment .env.prod
-# use '.' for the current directory (monorepo root): "apps": [".", "apps/web"],
+`init-key` also creates `envage.config.json` in the same folder when there is none
+(an existing file is never changed):
+
+```json
 {
-  "apps": [".", "apps/web", "apps/admin", "packages/api"],
-  "envs": ["root", "dev", "staging", "prod"],
-  "keyFile": ".age/key.txt"
+  "apps": ["."],
+  "envs": ["production", "root"],
+  "keyFile": ".age/key.txt",
+  "keyPubFile": ".age/key.pub"
 }
 ```
+
+Edit it for your repository:
+
+- `apps`: folders relative to the root. `"."` is the root itself; add your own, for example `[".", "apps/web", "packages/*"]`.
+- `envs`: `"root"` is the plain `.env` file; any other name `<env>` is `.env.<env>` (`"production"` is `.env.production`).
 
 ### 3. Encrypt your env files
 
@@ -127,15 +132,17 @@ npx envage decrypt --all --env dev
 
 ### `envage init-key`
 
-Generate a new age X25519 keypair.
+Generate a new age X25519 keypair and, when the current folder has no
+`envage.config.json`, create a starter one that points at the new key files.
 
 ```bash
-envage init-key [--output <folder>]
+envage init-key [--output <folder>] [--no-config]
 ```
 
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--output` | `.age` | Output folder for `key.txt` and `key.pub` |
+| `--no-config` | — | Do not create `envage.config.json` |
 
 ---
 
@@ -220,7 +227,7 @@ envage status [path]
 
 ## Configuration — `envage.config.json`
 
-Place this file at the root of your monorepo:
+`envage init-key` creates a starter file at the root of your repository; you can also write it by hand:
 
 ```json
 {
@@ -298,6 +305,7 @@ import {
   generateKeyPair,
   generateKeyPairToFolder,
   getEnvStatus,
+  initConfig,
   loadConfig,
   resolveApps,
   ensureGitignore,
@@ -344,6 +352,9 @@ await decryptEnv({
   env: "root",
   keyFile: ".age/key.txt",
 });
+
+// Create a starter envage.config.json if there is none (an existing file is kept)
+const { created } = await initConfig();
 
 // Expand app globs ("apps/*") to actual folder paths
 const config = await loadConfig();
@@ -491,7 +502,7 @@ monorepo/
 │   └── api/
 │       ├── .env.dev.age
 │       └── .env.prod.age
-├── envage.config.json       ← committed ✅
+├── envage.config.json       ← created by init-key, committed ✅
 └── .gitignore               ← auto-updated by envage
 ```
 

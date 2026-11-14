@@ -111,7 +111,7 @@ const RULES = [
   { icon: "🔒", text: "Private key (key.txt)", sub: "Never committed — auto-gitignored on init-key" },
   { icon: "✅", text: "Public key (key.pub)", sub: "Share with teammates for encrypting" },
   { icon: "🔒", text: "Plaintext .env files", sub: "Never committed — always gitignored" },
-  { icon: "✅", text: "envage.config.json", sub: "Lists app folders and envs — safe to commit" },
+  { icon: "✅", text: "envage.config.json", sub: "Created by init-key; lists app folders and envs — safe to commit" },
 ];
 
 export default function MonorepoStructure() {

@@ -19,9 +19,9 @@ yarn add --dev @asafarim/envage`,
   },
   {
     number: "02",
-    title: "Generate your keypair",
+    title: "Generate your keypair and config",
     description:
-      "Each teammate runs init-key locally. Keep private identities private and share only public keys. Add team recipients after configuring your apps.",
+      "Each teammate runs init-key locally. It writes the keypair, protects it in .gitignore and, if the folder has no envage.config.json yet, creates a starter one (an existing config is never changed). Keep private identities private and share only public keys.",
     color: "var(--accent-blue)",
     code: `npx envage init-key
 
@@ -30,22 +30,27 @@ yarn add --dev @asafarim/envage`,
 # ✔ Private key written to: .age/key.txt
 # ✔ Public key written to:  .age/key.pub
 # ✔ .gitignore updated.
-# ⚠ IMPORTANT: Never commit your private key (.age/key.txt).`,
+# ⚠ IMPORTANT: Never commit your private key (.age/key.txt).
+# ✔ envage.config.json created with defaults.`,
     lang: "bash",
   },
   {
     number: "03",
     title: "Configure your apps",
     description:
-      'Create envage.config.json at your monorepo root. Add teammates with envage recipient add to populate the public recipients list. List your app folders and environment names. Entries support glob patterns (apps/*, packages/**) that expand to matching folders. Use "root" as an env name to target a plain .env file instead of .env.<env>.',
+      'init-key created envage.config.json at your repository root with the root folder (".") and the production and root environments. Add your own app folders to "apps" and adjust "envs". Add teammates with envage recipient add to populate the public recipients list. List your app folders and environment names. Entries support glob patterns (apps/*, packages/**) that expand to matching folders. Use "root" as an env name to target a plain .env file instead of .env.<env>.',
     color: "var(--accent-purple)",
-    code: `// envage.config.json
+    code: `// envage.config.json as created by init-key
 {
-  "apps": [
-    "apps/web",
-    "apps/admin",
-    "packages/api"
-  ],
+  "apps": ["."],
+  "envs": ["production", "root"],
+  "keyFile": ".age/key.txt",
+  "keyPubFile": ".age/key.pub"
+}
+
+// Add your app folders and environments:
+{
+  "apps": ["apps/web", "apps/admin", "packages/api"],
   "envs": ["dev", "staging", "prod"],
   "keyFile": ".age/key.txt"
 }

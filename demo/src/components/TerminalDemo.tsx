@@ -24,9 +24,11 @@ const DEMOS: Demo[] = [
       { type: "blank" },
       { type: "warn", text: "⚠ IMPORTANT: Never commit your private key (.age/key.txt)." },
       { type: "warn", text: "⚠ Share .age/key.pub with teammates who need to encrypt files." },
+      { type: "ok",   text: "✔ envage.config.json created with defaults." },
+      { type: "out",  text: 'ℹ Add your app folders to "apps" in envage.config.json, for example [".", "apps/*"], and adjust "envs" to the environments you use.' },
       { type: "blank" },
-      { type: "out",  text: "  To encrypt:  envage encrypt apps/web --env dev" },
-      { type: "out",  text: "  To decrypt:  envage decrypt apps/web --env dev" },
+      { type: "out",  text: "  To encrypt:  envage encrypt --all --env production" },
+      { type: "out",  text: "  To decrypt:  envage decrypt --all --env production" },
     ],
   },
   {
@@ -288,6 +290,7 @@ export default function CliDemo() {
               { flag: "--passphrase",   desc: "Use passphrase instead of key" },
               { flag: "--all",          desc: "Run on all apps in config" },
               { flag: "--output <dir>", desc: "Key output folder (init-key)" },
+              { flag: "--no-config",    desc: "Skip creating envage.config.json (init-key)" },
             ].map((f) => (
               <div key={f.flag} style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
                 <code style={{

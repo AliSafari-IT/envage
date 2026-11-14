@@ -19,6 +19,8 @@ export { getEnvStatus, getFolderStatus, checkEnvStatus } from "./lib/status.js";
 export {
   loadConfig,
   saveConfig,
+  initConfig,
+  STARTER_CONFIG,
   resolveAppPaths,
   resolveApps,
   isGlobPattern,
