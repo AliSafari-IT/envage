@@ -5,6 +5,8 @@ import path from "path";
 import {
   loadConfig,
   saveConfig,
+  initConfig,
+  STARTER_CONFIG,
   resolveAppPaths,
   resolveApps,
   isGlobPattern,
@@ -221,5 +223,47 @@ describe("resolveApps()", () => {
       (p) => p === path.join(tmpDir, "apps", "web"),
     ).length;
     expect(webCount).toBe(1);
+  });
+});
+
+describe("initConfig()", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "envage-test-init-"));
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("creates the starter config when none exists", async () => {
+    const result = await initConfig(tmpDir);
+    expect(result.created).toBe(true);
+    expect(result.configPath).toBe(path.join(tmpDir, CONFIG_FILENAME));
+    const written = JSON.parse(await fs.readFile(result.configPath, "utf-8"));
+    expect(written).toEqual({
+      apps: ["."],
+      envs: ["production", "root"],
+      keyFile: ".age/key.txt",
+      keyPubFile: ".age/key.pub",
+    });
+    expect(await loadConfig(tmpDir)).toEqual(STARTER_CONFIG);
+  });
+
+  it("applies overrides such as a custom key folder", async () => {
+    await initConfig(tmpDir, { keyFile: "keys/key.txt", keyPubFile: "keys/key.pub" });
+    const config = await loadConfig(tmpDir);
+    expect(config.keyFile).toBe("keys/key.txt");
+    expect(config.keyPubFile).toBe("keys/key.pub");
+    expect(config.apps).toEqual(["."]);
+  });
+
+  it("never overwrites an existing config", async () => {
+    const existing = '{ "apps": ["apps/web"], "envs": ["dev"], "keyFile": "k.txt" }';
+    await fs.writeFile(path.join(tmpDir, CONFIG_FILENAME), existing, "utf-8");
+    const result = await initConfig(tmpDir);
+    expect(result.created).toBe(false);
+    expect(await fs.readFile(result.configPath, "utf-8")).toBe(existing);
   });
 });

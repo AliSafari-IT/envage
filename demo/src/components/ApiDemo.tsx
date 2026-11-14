@@ -101,9 +101,14 @@ await generateKeyPairToFolder(".age");
     icon: "📊",
     code: `import {
   getEnvStatus,
+  initConfig,
   loadConfig,
   resolveApps,
 } from "@asafarim/envage";
+
+// Create a starter envage.config.json if there is none
+// (init-key does this too; an existing file is kept)
+await initConfig();
 
 // Load config from envage.config.json
 const config = await loadConfig();

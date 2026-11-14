@@ -7,14 +7,18 @@
  * Generates a new age X25519 keypair and writes:
  *   .age/key.txt  (private key, mode 0600)
  *   .age/key.pub  (public key)
+ * and creates a starter envage.config.json when the folder has none.
  */
 import type { Command } from "commander";
 import { generateKeyPairToFolder } from "../../lib/keygen.js";
+import path from "path";
+import { CONFIG_FILENAME, initConfig } from "../../lib/config.js";
 import { ensureGitignore } from "../../lib/gitignore.js";
 import { logger } from "../../lib/logger.js";
 
 interface InitKeyOptions {
   output?: string;
+  config: boolean;
 }
 
 export function registerInitKey(program: Command): void {
@@ -22,6 +26,7 @@ export function registerInitKey(program: Command): void {
     .command("init-key")
     .description("Generate a new age keypair (.age/key.txt and .age/key.pub)")
     .option("-o, --output <folder>", "output folder for the keypair", ".age")
+    .option("--no-config", `do not create ${CONFIG_FILENAME}`)
     .action(async (opts: InitKeyOptions) => {
       const outputFolder = opts.output ?? ".age";
 
@@ -38,17 +43,42 @@ export function registerInitKey(program: Command): void {
 
         logger.warn("IMPORTANT: Never commit your private key (.age/key.txt).");
         logger.warn("Share .age/key.pub with teammates who need to encrypt files.");
+        let all = false;
+        if (opts.config) {
+          const { created } = await initConfig(process.cwd(), {
+            keyFile: toConfigPath(keyFile),
+            keyPubFile: toConfigPath(pubFile),
+          });
+          all = true;
+          if (created) {
+            logger.success(`${CONFIG_FILENAME} created with defaults.`);
+            logger.info(
+              `Add your app folders to "apps" in ${CONFIG_FILENAME}, for example [".", "apps/*"], and adjust "envs" to the environments you use.`
+            );
+          } else {
+            logger.info(`${CONFIG_FILENAME} already exists; left unchanged.`);
+          }
+        }
+
         logger.raw("");
-        logger.raw(
-          "  To encrypt:  envage encrypt apps/web --env dev"
-        );
-        logger.raw(
-          "  To decrypt:  envage decrypt apps/web --env dev"
-        );
+        if (all) {
+          logger.raw("  To encrypt:  envage encrypt --all --env production");
+          logger.raw("  To decrypt:  envage decrypt --all --env production");
+        } else {
+          logger.raw("  To encrypt:  envage encrypt apps/web --env dev");
+          logger.raw("  To decrypt:  envage decrypt apps/web --env dev");
+        }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         logger.error(`Failed to generate keypair: ${msg}`);
         process.exit(1);
       }
     });
+}
+
+/** Key path as stored in the config: relative to the project root, with "/" separators. */
+function toConfigPath(file: string): string {
+  const relative = path.relative(process.cwd(), file);
+  const inside = relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+  return inside ? relative.split(path.sep).join("/") : file;
 }
