@@ -79,6 +79,17 @@ Edit it for your repository:
 - `apps`: folders relative to the root. `"."` is the root itself; add your own, for example `[".", "apps/web", "packages/*"]`.
 - `envs`: `"root"` is the plain `.env` file; any other name `<env>` is `.env.<env>` (`"production"` is `.env.production`).
 
+The steps below use this edited config. Only the listed `envs` appear in `status` and are re-encrypted when recipients change, so list every environment you encrypt:
+
+```json
+{
+  "apps": [".", "apps/web", "apps/admin", "packages/api"],
+  "envs": ["root", "dev", "staging", "prod"],
+  "keyFile": ".age/key.txt",
+  "keyPubFile": ".age/key.pub"
+}
+```
+
 ### 3. Encrypt your env files
 
 ```bash
